@@ -29,15 +29,10 @@ export class Keys {
     static MEM_LIMIT = 1 * 1024 * 1024 * 1024;
 
     static computePassword(sodium, password, username){
-        return new Promise(function(resolve, reject){
+        const usernameSalt = sodium.crypto_generichash(sodium.crypto_pwhash_SALTBYTES, username);   
+        // why is my phone 7 times faster than my desktop?
+        return sodium.crypto_pwhash(crypto.KEY_LENGTH, password, usernameSalt, Keys.OPS_LIMIT, Keys.MEM_LIMIT, sodium.crypto_pwhash_ALG_DEFAULT);
 
-            const usernameSalt = sodium.crypto_generichash(sodium.crypto_pwhash_SALTBYTES, username);
-    
-            // why is my phone 7 times faster than my desktop?
-            let data = sodium.crypto_pwhash(crypto.KEY_LENGTH, password, usernameSalt, Keys.OPS_LIMIT, Keys.MEM_LIMIT, sodium.crypto_pwhash_ALG_DEFAULT);
-
-            resolve(data);
-        });
     }
 
     constructor(publicSigningKey, secretSigningKey, publicX25519Key, secretX25519Key){

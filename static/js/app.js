@@ -44,15 +44,3 @@ update_main();
 let sodium = await get_sodium();
 
 console.log("sodum is here!", sodium);
-
-
-
-
-// console.log(sodium.crypto_aead_chacha20poly1305_IETF_NPUBBYTES);
-
-let start = Date.now();
-
-let data = await Keys.computePassword(sodium, "1234", "joe");
-
-let time = (Date.now() - start) / 1000;
-alert("that took "+time+" here: "+ JSON.stringify(data));//realy???
