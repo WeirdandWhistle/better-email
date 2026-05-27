@@ -2,14 +2,47 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Better Email (not best)</title>
+    <link rel="stylesheet" href="stylesheet.css">
 </head>
 <body>
-    hi!
 
-    <script type="module" src="load_sodium.js"></script>
-    <script type="module" src="app.js"></script>
-    <script src="sodium.js" async></script>
+    <header>
+        <div style="width: 90%;">
+            <h1>Encrypted mail</h1>
+        </div>
+        <div>
+            <h2 class="blue-button" id="compose_button">Compose</h2>
+        </div>
+    </header>
+
+
+    <main id="main">
+
+        <div class="mail-list" id="mail_list" style="display: none;">
+            <entry>
+                <span class="id-address">super.cool.dude.from.end@whynotjava.net</span>
+                <span class="subject">TLS mailing list [last call] please commnet on what you think now!</span>
+                <span class="date"> 5/26/26</span>
+
+                <iconSep></iconSep>
+                <entryIcon>&#x1F5D1;</entryIcon>
+            </entry>
+        </div>
+        <div class="compse" id="compose" style="display: none;">
+            <div class="meta-data">
+                <input placeholder="To" class="textbox">
+                <input placeholder="Subject" class="textbox">
+            </div>
+            <textarea class="mail-message" id="mail-message" placeholder="Type you message here"></textarea>
+            <h4 class="blue-button" id="send_button">Send</h4>
+        </div>
+
+    </main>
+
+    <script type="module" src="js/load_sodium.js"></script>
+    <script type="module" src="js/crypto.js"></script>
+    <script type="module" src="js/app.js"></script>
+    <script src="js/sodium.js" async></script>
 </body>
 </html>
