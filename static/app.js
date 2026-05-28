@@ -1,5 +1,5 @@
-import { get_sodium } from "./load_sodium.js";
-import { Keys, concatArr, Crypto } from "./crypto.js";
+import { get_sodium } from "./js/load_sodium.js";
+import { Keys, concatArr, Crypto } from "./js/crypto.js";
 
 
 if(!sessionStorage.getItem("state")){

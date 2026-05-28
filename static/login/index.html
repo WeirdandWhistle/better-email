@@ -11,11 +11,12 @@
             <div style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 0.25rem;">
                 <h2>Login to Better Mail</h2>
                 <div>
-                    <input class="textbox" placeholder="username" type="username">
+                    <input class="textbox" placeholder="username" type="email">
                     @
                     <input class="textbox" placeholder="whynotjava.net">
                 </div>
                 <input class="textbox" placeholder="password" type="password">
+                <span id="login-message"></span>
                 <h3 class="blue-button">Login</h3>
             </div>
             <hr style="width: 95%;">
@@ -27,11 +28,16 @@
                     <input class="textbox" placeholder="whynotjava.net" disabled style="cursor: not-allowed;">
                 </div>
                 <input class="textbox" placeholder="password" type="password">
+                <span id="signup-message"></span>
                 <h3 class="blue-button">Signup</h3>
             </div>            
 
         </main>
     </div>
-    <script src="../js/blueButtonSciprt.js"></script>
+    <script type="module" src="js/load_sodium.js"></script>
+    <script type="module" src="js/crypto.js"></script>
+    <script type="module" src="app.js"></script>
+    <script src="js/sodium.js" async></script>
+    <script src="js/blueButtonSciprt.js"></script>
 </body>
 </html>
