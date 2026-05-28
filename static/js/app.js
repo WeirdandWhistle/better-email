@@ -33,7 +33,7 @@ function update_main(){
             compose.style.display = "none";
             break;
         case "compose":
-            compose_button.innerText = "View Mail";     
+            compose_button.innerText = "View Mail";
             mail_list.style.display = "none";
             compose.style.display = "flex";
             break;

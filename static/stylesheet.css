@@ -30,6 +30,8 @@ main {
 .blue-button:hover {
     background-color: rgb(78, 134, 246);
     transform: scale(1.1);
+    box-shadow: -3px -3px 5px #000000aa,
+                3px 3px 5px #000000aa;
 }
 
 .mail-list{
