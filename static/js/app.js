@@ -43,4 +43,5 @@ update_main();
 
 let sodium = await get_sodium();
 
-console.log("sodum is here!", sodium);
+let chal = new Uint8Array(length=32);
+crypto.findChallengeNonce();

@@ -2,7 +2,6 @@ let sodium;
 
 window.sodium = {
     onload: ((s)=>{
-        console.log('sodium!');
         sodium = s;
     })
 }
