@@ -11,33 +11,33 @@
             <div style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 0.25rem;">
                 <h2>Login to Better Mail</h2>
                 <div>
-                    <input class="textbox" placeholder="username" type="email">
+                    <input class="textbox" placeholder="username" type="username" id="login-username">
                     @
-                    <input class="textbox" placeholder="whynotjava.net">
+                    <input class="textbox" placeholder="whynotjava.net" disabled style="cursor: not-allowed;" id="login-website">
                 </div>
-                <input class="textbox" placeholder="password" type="password">
+                <input class="textbox" placeholder="password" type="password" id="login-password">
                 <span id="login-message"></span>
-                <h3 class="blue-button">Login</h3>
+                <h3 class="blue-button" id="login-button">Login</h3>
             </div>
             <hr style="width: 95%;">
              <div style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 0.25rem;">
                 <h2>Signup for Better Mail</h2>
                 <div>
-                    <input class="textbox" placeholder="username" type="username">
+                    <input class="textbox" placeholder="username" type="username" id="signup-username">
                     @
-                    <input class="textbox" placeholder="whynotjava.net" disabled style="cursor: not-allowed;">
+                    <input class="textbox" placeholder="whynotjava.net" disabled style="cursor: not-allowed;" id="signup-website">
                 </div>
-                <input class="textbox" placeholder="password" type="password">
+                <input class="textbox" placeholder="password" type="password" id="signup-password">
                 <span id="signup-message"></span>
-                <h3 class="blue-button">Signup</h3>
+                <h3 class="blue-button" id="signup-button">Signup</h3>
             </div>            
 
         </main>
     </div>
-    <script type="module" src="js/load_sodium.js"></script>
-    <script type="module" src="js/crypto.js"></script>
+    <script type="module" src="../js/load_sodium.js"></script>
+    <script type="module" src="../js/crypto.js"></script>
     <script type="module" src="app.js"></script>
-    <script src="js/sodium.js" async></script>
-    <script src="js/blueButtonSciprt.js"></script>
+    <script src="../js/sodium.js" async></script>
+    <script src="../js/blueButtonSciprt.js"></script>
 </body>
 </html>

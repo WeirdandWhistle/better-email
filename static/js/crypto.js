@@ -133,10 +133,20 @@ export class Keys {
 
     static FUNNY_WORD1 = "Who do you see? Who do you think your talking to? Someone opens the door and gets shot, you think that of me? I am not in danger. I am the danger! I AM THE ONE WHO KNOCKS!";
 
-    static computePassword(sodium, password, username){
-        const usernameSalt = sodium.crypto_generichash(sodium.crypto_pwhash_SALTBYTES, username + this.FUNNY_WORD1);
-        // why is my phone 7 times faster than my desktop?
-        return sodium.crypto_pwhash(crypto.KEY_LENGTH, password, usernameSalt, Keys.OPS_LIMIT, Keys.MEM_LIMIT, sodium.crypto_pwhash_ALG_DEFAULT);
+    static async computePassword(username, password){
+        const worker = new Worker('/js/workers/computePassword.js');
+        
+        worker.postMessage({username: username, password: password, MEM_LIMIT: this.MEM_LIMIT, OPS_LIMIT: this.OPS_LIMIT, FUNNY_WORD1: this.FUNNY_WORD1, KEY_LENGTH: Crypto.KEY_LENGTH});
+    
+        worker.onerror = (mes) => {
+            console.log("worker errored!",mes);
+        }
+        return new Promise((resolve, reject) => {
+            worker.onmessage = (message) => {
+                resolve(message.data);
+            };
+        });
+        
     }
 
     constructor(publicSigningKey, secretSigningKey, publicX25519Key, secretX25519Key){
