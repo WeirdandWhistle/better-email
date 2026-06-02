@@ -133,6 +133,16 @@ export class Keys {
 
     static FUNNY_WORD1 = "Who do you see? Who do you think your talking to? Someone opens the door and gets shot, you think that of me? I am not in danger. I am the danger! I AM THE ONE WHO KNOCKS!";
 
+    static generateKeys(sodium){
+        const secretX25519 = sodium.randombytes_buf(Crypto.KEY_LENGTH);
+        const publicX25519 = sodium.crypto_scalarmult_base(secretX25519);
+        const Ed25519 = sodium.crypto_sign_keypair();
+        const secretEd25519 = Ed25519.privateKey;
+        const publicEd25519 = Ed25519.publicKey; 
+        const k = new Keys(publicEd25519, secretEd25519, publicX25519, secretX25519);
+        return k; 
+    }
+
     static async computePassword(username, password){
         const worker = new Worker('/js/workers/computePassword.js');
         

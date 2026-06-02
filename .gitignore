@@ -18,5 +18,4 @@ buildNumber.properties
 
 
 sodium.js
-
-openjdk-26/
+*.db

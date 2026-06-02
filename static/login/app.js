@@ -27,3 +27,31 @@ login.button.addEventListener('click', async (event)=>{
    console.log(await c.Keys.computePassword(username, password));
 
 });
+
+signup.button.addEventListener('click', async (event)=>{
+    const username = signup.username.value.toLowerCase();
+    const password = signup.password.value;
+
+    // const baseKey = c.Keys.computePassword(username, password);
+    console.log(c);
+    const keys = c.Keys.generateKeys(sodium);
+
+    const nonce = sodium.randombytes_buf(c.Crypto.NONCE_LENGTH);
+
+    const out = {
+        signingKey: sodium.to_base64(keys.getPublicSigningKey(),sodium.sodium_base64_VARIANT_URLSAFE),
+        X25519Key: sodium.to_base64(keys.getPublicX25519Key(),sodium.sodium_base64_VARIANT_URLSAFE),
+        nonce: sodium.to_base64(nonce, sodium.sodium_base64_VARIANT_URLSAFE),
+        vault: "01",
+        username: username,
+    };
+    console.log(out);
+
+    fetch("/emapi/v1/signup",{
+        method: 'POST',
+        headers: {
+            'Content-Type' : 'application/json',
+        },
+        body: JSON.stringify(out),
+    });
+});
