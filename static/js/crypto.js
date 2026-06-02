@@ -178,6 +178,85 @@ export class Keys {
         return this.secretX25519Key;
     }
 }
+export class Vault {
+
+    static generateAdditonalData(publicSigningKey, publicX25519Key, nonce){
+        return concatArr(publicSigningKey, publicX25519Key, nonce);
+    }
+    static decodeVault(sodium, vaultKey, vaultJSON){
+        const blobVault = sodium.from_base64(vaultJSON.vault, sodium.sodium_base64_VARIANT_URLSAFE);
+        const ad = this.generateAdditonalData(sodium.from_base64(vaultJSON.SigningKey, sodium.sodium_base64_VARIANT_URLSAFE),
+            sodium.from_base64(vaultJSON.X25519Key, sodium.sodium_base64_VARIANT_URLSAFE),
+            sodium.from_base64(vaultJSON.nonce, sodium.sodium_base64_VARIANT_URLSAFE));
+
+        const text = sodium.crypto_aead_chacha20poly1305_ietf_decrypt(null, blobVault, ad, vaultJSON.nonce, vaultKey, "text");
+        return this.getVaultFromJSON(JSON.parse(text));
+    }
+    static getVaultFromJSON(sodium, json){
+        return new Vault(sodium.from_base64(json.secretX25519Key, sodium.sodium_base64_VARIANT_URLSAFE),
+          sodium.from_base64(json.secretSigningKey, sodium.sodium_base64_VARIANT_URLSAFE), json.verifyedPeople, json.other);
+    }
+
+    constructor(secretX25519Key, secretSigningKey, verifyedPeople, other){
+        self.secretX25519Key = secretX25519Key;
+        self.secretSigningKey = secretSigningKey;
+        self.verifyedPeople = verifyedPeople;
+        self.other = other;
+    }
+    encodeVault(sodium, vaultKey, keys){
+        const text = this.getJSONText(sodium);
+
+        const nonce = sodium.randombytes_buf(Crypto.NONCE_LENGTH);
+        const ad = generateAdditonalData(keys.getPublicSigningKey(), keys.publicX25519Key, nonce);
+
+        const vaultBlob = sodium.crypto_aead_chacha20poly1305_encrypt(text, ad, null, nonce, vaultKey);
+
+        const out = {
+            SigningKey: sodium.to_base64(keys.getPublicSigningKey(), sodium.sodium_base64_VARIANT_URLSAFE),
+            X25519Key: sodium.to_base64(keys.getPublicX25519Key(), sodium.sodium_base64_VARIANT_URLSAFE),
+            nonce: sodium.to_bas64(nonce, sodium.sodium_base64_VARIANT_URLSAFE),
+            vault: sodium.to_base64(vault, sodium.sodium_base64_VARIANT_URLSAFE),
+        };
+        return out;
+    }    
+    getSecrectX25519Key(){
+        return self.secretX25519Key;
+    }
+    setSecrectX25519Key(a){
+        self.secretX25519Key = a;
+    }
+    getSecrectSigningKey(){
+        return self.secretSigningKey;
+    }
+    setSecretSigningKey(a){
+        self.secretSigningKey = a;
+    }
+    getVerifyedPeople(){
+        return self.verifyedPeople;
+    }
+    setVerifyedPeople(a){
+        self.verifyedPeople = a;
+    }
+    getOther(){
+        return self.other;
+    }
+    setOther(a){
+        self.other = a;
+    }
+    getJSON(sodium){
+        const out = {
+            secretX25519Key: sodium.to_base64(self.secretX25519, sodium.sodium_base64_VARIANT_URLSAFE),
+            secretSigningKey: sodium.to_base64(self.secretSigningKey, sodium.sodium_base64_VARIANT_URLSAFE),
+            verifyedPeople: self.verifyedPeople,
+            other: self.other,
+        };
+        return out;
+    }
+    getJSONText(sodium){
+        return JSON.stringify(this.getJSON(sodium));
+    }
+
+}
 
 export function concatArr(...arrays) {
   const totalLength = arrays.reduce((sum, arr) => sum + arr.length, 0);

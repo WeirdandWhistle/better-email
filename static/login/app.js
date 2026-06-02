@@ -33,7 +33,7 @@ signup.button.addEventListener('click', async (event)=>{
     const password = signup.password.value;
 
     // const baseKey = c.Keys.computePassword(username, password);
-    console.log(c);
+    // console.log(c);
     const keys = c.Keys.generateKeys(sodium);
 
     const nonce = sodium.randombytes_buf(c.Crypto.NONCE_LENGTH);
@@ -45,7 +45,7 @@ signup.button.addEventListener('click', async (event)=>{
         vault: "01",
         username: username,
     };
-    console.log(out);
+    // console.log(out);
 
     fetch("/emapi/v1/signup",{
         method: 'POST',
