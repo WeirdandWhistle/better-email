@@ -9,7 +9,8 @@ public class Username {
             return false;
         }
         for(int i = 0; i < username.length(); i++){
-            if(!allowedCharset.contains(username.subSequence(i, i))){
+            if(!allowedCharset.contains(username.subSequence(i, i+1))){
+                
                 return false;
             }
         }
