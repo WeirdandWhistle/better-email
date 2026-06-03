@@ -64,7 +64,7 @@ public class Signup {
             if(username.length() > MAX_USERNAME_LENGTH){
                 return badRequest("Username is too long.");
             }
-            if(username.length() < 0){
+            if(username.length() <= 0){
                 return badRequest("Username does not exist.");
             }
             if(!Username.validateUsername(username)){
