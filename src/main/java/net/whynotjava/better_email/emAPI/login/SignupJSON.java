@@ -1,5 +1,10 @@
 package net.whynotjava.better_email.emAPI.login;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Base64;
+import java.util.Base64.Decoder;
+
 import org.slf4j.Logger;
 
 import tools.jackson.databind.ObjectMapper;
@@ -44,5 +49,15 @@ public class SignupJSON {
     public void log(Logger log){
         ObjectMapper mapper = new ObjectMapper();
         log.info(mapper.writeValueAsString(this));
+    }
+    public static SignupJSON JSONFromDB(ResultSet rs) throws SQLException{
+        SignupJSON out = new SignupJSON();
+        Decoder d = Base64.getUrlDecoder();
+        out.X25519Key = d.decode(rs.getBytes("X25519Key"));
+        out.signingKey = d.decode(rs.getBytes("signingKey"));
+        out.nonce = d.decode(rs.getBytes("nonce"));
+        out.vault = d.decode(rs.getBytes("vault"));
+        out.username = rs.getString("username");
+        return out;
     }
 } 

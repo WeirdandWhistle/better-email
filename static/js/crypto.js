@@ -55,6 +55,9 @@ export class Crypto {
     static createAdditionDataMail(nonce, targetX25519PublicKey, tempPublicX25519Key, challengeNonce){
         return concatArr(nonce, targetX25519PublicKey, tempPublicX25519Key, challengeNonce);
     }
+    static generateVaultKey(sodium, baseKey){
+        return sodium.crypto_kdf_derive_from_key(this.KEY_LENGTH, 1, "vaultKey", baseKey);
+    }
 
     constructor(sodium, keys){
         this.sodium = sodium;
@@ -207,7 +210,7 @@ export class Vault {
         const text = this.getJSONText(sodium);
 
         const nonce = sodium.randombytes_buf(Crypto.NONCE_LENGTH);
-        const ad = generateAdditonalData(keys.getPublicSigningKey(), keys.publicX25519Key, nonce);
+        const ad = generateAdditonalData(keys.getPublicSigningKey(), keys.getPublicX25519Key(), nonce);
 
         const vaultBlob = sodium.crypto_aead_chacha20poly1305_encrypt(text, ad, null, nonce, vaultKey);
 
@@ -215,7 +218,7 @@ export class Vault {
             SigningKey: sodium.to_base64(keys.getPublicSigningKey(), sodium.sodium_base64_VARIANT_URLSAFE),
             X25519Key: sodium.to_base64(keys.getPublicX25519Key(), sodium.sodium_base64_VARIANT_URLSAFE),
             nonce: sodium.to_bas64(nonce, sodium.sodium_base64_VARIANT_URLSAFE),
-            vault: sodium.to_base64(vault, sodium.sodium_base64_VARIANT_URLSAFE),
+            vault: sodium.to_base64(vaultBlob, sodium.sodium_base64_VARIANT_URLSAFE),
         };
         return out;
     }    

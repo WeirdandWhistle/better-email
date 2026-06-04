@@ -12,8 +12,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import static net.whynotjava.better_email.Constants.KEY_LENGTH;
 import static net.whynotjava.better_email.Constants.MAX_USERNAME_LENGTH;
@@ -22,6 +24,8 @@ import static net.whynotjava.better_email.Constants.SINGING_KEY_LENGTH;
 import static net.whynotjava.better_email.Constants.VAULT_LENGTH;
 import net.whynotjava.better_email.Database;
 import net.whynotjava.better_email.emAPI.Username;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import static net.whynotjava.better_email.Util.OKRes;
 import static net.whynotjava.better_email.Util.badRequest;
@@ -36,8 +40,28 @@ public class Signup {
 
     Logger log = LoggerFactory.getLogger(getClass());
 
+    @GetMapping("emapi/v1/signup")
+    public ResponseEntity<String> signupGet(@RequestParam(required = false) String username){
+        try (Connection conn = db.getDB().getConnection()){
+            if(username != null){
+                PreparedStatement ps = conn.prepareStatement("SELECT * FROM users WHERE username=? LIMIT 1;");
+                ps.setString(1, username);
+                ResultSet rs = ps.executeQuery();
+
+                SignupJSON sj = SignupJSON.JSONFromDB(rs);
+
+                ObjectMapper mapper = new ObjectMapper();
+            }
+            
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return error(500, "signupGet Exception"+e.getMessage());
+        }
+        return badRequest("No id to lookup.");        
+    }
+    
     @PostMapping("/emapi/v1/signup")
-    public ResponseEntity<?> signup(@RequestBody SignupJSON signup){
+    public ResponseEntity<String> signupPost(@RequestBody SignupJSON signup){
 
         signup.log(log);
 
@@ -102,7 +126,7 @@ public class Signup {
             ps.executeUpdate();            
         } catch (Exception e) {
             log.error(e.getMessage());
-            return error(500, "Exception: "+e.getMessage());
+            return error(500, "signupPost Exception: "+e.getMessage());
         }
         return OKRes;
     }
