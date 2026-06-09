@@ -171,13 +171,13 @@ export class Keys {
     getPublicSigningKey(){
         return this.publicSigningKey;
     }
-    getSecrectSigningKey(){
+    getSecretSigningKey(){
         return this.secretSigningKey;
     }
     getPublicX25519Key(){
         return this.publicX25519Key;
     }
-    getSecrectX25519Key(){
+    getSecretX25519Key(){
         return this.secretX25519Key;
     }
 }
@@ -188,7 +188,7 @@ export class Vault {
     }
     static decodeVault(sodium, vaultKey, vaultJSON){
         const blobVault = sodium.from_base64(vaultJSON.vault, sodium.sodium_base64_VARIANT_URLSAFE);
-        const ad = this.generateAdditonalData(sodium.from_base64(vaultJSON.SigningKey, sodium.sodium_base64_VARIANT_URLSAFE),
+        const ad = this.generateAdditonalData(sodium.from_base64(vaultJSON.signingKey, sodium.sodium_base64_VARIANT_URLSAFE),
             sodium.from_base64(vaultJSON.X25519Key, sodium.sodium_base64_VARIANT_URLSAFE),
             sodium.from_base64(vaultJSON.nonce, sodium.sodium_base64_VARIANT_URLSAFE));
 
@@ -210,25 +210,25 @@ export class Vault {
         const text = this.getJSONText(sodium);
 
         const nonce = sodium.randombytes_buf(Crypto.NONCE_LENGTH);
-        const ad = generateAdditonalData(keys.getPublicSigningKey(), keys.getPublicX25519Key(), nonce);
+        const ad = Vault.generateAdditonalData(keys.getPublicSigningKey(), keys.getPublicX25519Key(), nonce);
 
-        const vaultBlob = sodium.crypto_aead_chacha20poly1305_encrypt(text, ad, null, nonce, vaultKey);
+        const vaultBlob = sodium.crypto_aead_chacha20poly1305_ietf_encrypt(text, ad, null, nonce, vaultKey);
 
         const out = {
-            SigningKey: sodium.to_base64(keys.getPublicSigningKey(), sodium.sodium_base64_VARIANT_URLSAFE),
+            signingKey: sodium.to_base64(keys.getPublicSigningKey(), sodium.sodium_base64_VARIANT_URLSAFE),
             X25519Key: sodium.to_base64(keys.getPublicX25519Key(), sodium.sodium_base64_VARIANT_URLSAFE),
-            nonce: sodium.to_bas64(nonce, sodium.sodium_base64_VARIANT_URLSAFE),
+            nonce: sodium.to_base64(nonce, sodium.sodium_base64_VARIANT_URLSAFE),
             vault: sodium.to_base64(vaultBlob, sodium.sodium_base64_VARIANT_URLSAFE),
         };
         return out;
     }    
-    getSecrectX25519Key(){
+    getSecretX25519Key(){
         return self.secretX25519Key;
     }
-    setSecrectX25519Key(a){
+    setSecretX25519Key(a){
         self.secretX25519Key = a;
     }
-    getSecrectSigningKey(){
+    getSecretSigningKey(){
         return self.secretSigningKey;
     }
     setSecretSigningKey(a){
@@ -247,9 +247,10 @@ export class Vault {
         self.other = a;
     }
     getJSON(sodium){
+        console.log("getJSON",sodium);
         const out = {
-            secretX25519Key: sodium.to_base64(self.secretX25519, sodium.sodium_base64_VARIANT_URLSAFE),
-            secretSigningKey: sodium.to_base64(self.secretSigningKey, sodium.sodium_base64_VARIANT_URLSAFE),
+            secretX25519Key: sodium.to_base64( this.getSecretX25519Key(), sodium.sodium_base64_VARIANT_URLSAFE),
+            secretSigningKey: sodium.to_base64(this.getSecretSigningKey(), sodium.sodium_base64_VARIANT_URLSAFE),
             verifyedPeople: self.verifyedPeople,
             other: self.other,
         };

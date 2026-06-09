@@ -2,7 +2,7 @@ importScripts('/js/sodium.js');
 
 onmessage = async (message) => {
     await sodium.ready;
-    console.log("from computePassword worker:", message.data);
+    // console.log("from computePassword worker:", message.data);
     console.log(sodium.ready);
     
     const d = message.data;
@@ -14,8 +14,9 @@ onmessage = async (message) => {
     const KEY_LENGTH = d.KEY_LENGTH;
     const FUNNY_WORD1 = d.FUNNY_WORD1;
 
-    const usernameSalt = sodium.crypto_generichash(sodium.crypto_pwhash_SALTBYTES, username + FUNNY_WORD1);
-    // why is my phone 7 times faster than my desktop?
-    const out = sodium.crypto_pwhash(KEY_LENGTH, password, usernameSalt, OPS_LIMIT, MEM_LIMIT, sodium.crypto_pwhash_ALG_DEFAULT);
+    // const usernameSalt = sodium.crypto_generichash(sodium.crypto_pwhash_SALTBYTES, username + FUNNY_WORD1);
+    // // why is my phone 7 times faster than my desktop?
+    // const out = sodium.crypto_pwhash(KEY_LENGTH, password, usernameSalt, OPS_LIMIT, MEM_LIMIT, sodium.crypto_pwhash_ALG_DEFAULT);
+    const out = sodium.crypto_hash_sha256(password);
     postMessage(out);
 }

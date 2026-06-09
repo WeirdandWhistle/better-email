@@ -10,6 +10,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,18 +18,17 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import static net.whynotjava.better_email.Constants.KEY_LENGTH;
-import static net.whynotjava.better_email.Constants.MAX_USERNAME_LENGTH;
-import static net.whynotjava.better_email.Constants.NONCE_LENGTH;
-import static net.whynotjava.better_email.Constants.SINGING_KEY_LENGTH;
-import static net.whynotjava.better_email.Constants.VAULT_LENGTH;
+import static net.whynotjava.better_email.Constants.*;
 import net.whynotjava.better_email.Database;
 import net.whynotjava.better_email.emAPI.Username;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.*;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ObjectNode;
 
+import static net.whynotjava.better_email.Util.CacheControl;
 import static net.whynotjava.better_email.Util.OKRes;
 import static net.whynotjava.better_email.Util.badRequest;
+import static net.whynotjava.better_email.Util.convertBytesToUUID;
 import static net.whynotjava.better_email.Util.convertUUIDToBytes;
 import static net.whynotjava.better_email.Util.error;
 
@@ -48,11 +48,24 @@ public class Signup {
                 ps.setString(1, username);
                 ResultSet rs = ps.executeQuery();
 
-                SignupJSON sj = SignupJSON.JSONFromDB(rs);
+                // SignupJSON sj = SignupJSON.JSONFromDB(rs);
 
-                ObjectMapper mapper = new ObjectMapper();
+                // ObjectMapper mapper = new ObjectMapper();
+                JsonMapper mapper = JsonMapper.builder().build();
+
+                Base64.Encoder encoder = Base64.getEncoder();
+                ObjectNode root = mapper.createObjectNode();
+                root.put("UUID", convertBytesToUUID(rs.getBytes("UUID")).toString());
+                root.put("X25519Key", encoder.encodeToString(rs.getBytes("X25519Key")));
+                root.put("signingKey", encoder.encodeToString(rs.getBytes("signingKey")));
+                root.put("nonce", encoder.encodeToString(rs.getBytes("nonce")));
+                root.put("vault", encoder.encodeToString(rs.getBytes("vault")));
+                root.put("username", rs.getString("username"));
+
+                root.put("status",200);
+
+                return new ResponseEntity<>(root.toString(), CacheControl("max-age") ,HttpStatus.OK);
             }
-            
         } catch (Exception e) {
             log.error(e.getMessage());
             return error(500, "signupGet Exception"+e.getMessage());
@@ -61,12 +74,13 @@ public class Signup {
     }
     
     @PostMapping("/emapi/v1/signup")
-    public ResponseEntity<String> signupPost(@RequestBody SignupJSON signup){
+    public ResponseEntity<?> signupPost(@RequestBody SignupJSON signup){
 
         signup.log(log);
 
         try (Connection conn = db.getDB().getConnection()){
-            Decoder decoder = Base64.getUrlDecoder();
+            Base64.Decoder decoder = Base64.getUrlDecoder();
+            log.info("singingKey: " + signup.getSigningKey());
             byte[] signingKey = decoder.decode(signup.getSigningKey());
             byte[] X25519Key = decoder.decode(signup.getX25519Key());
             byte[] nonce = decoder.decode(signup.getNonce());
@@ -125,7 +139,12 @@ public class Signup {
 
             ps.executeUpdate();            
         } catch (Exception e) {
+            // String stackTrace = "";
+            // for(StackTraceElement a : e.getStackTrace()){
+            //     stackTrace += a.toString() + "\\\n";
+            // }
             log.error(e.getMessage());
+            e.printStackTrace();
             return error(500, "signupPost Exception: "+e.getMessage());
         }
         return OKRes;

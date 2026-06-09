@@ -41,15 +41,8 @@ signup.button.addEventListener('click', async (event)=>{
 
     const vaultKey = c.Crypto.generateVaultKey(sodium, await baseKey);
 
-    const secureVault = vault.encodeVault(sodium, vaultKey, keys);
-
-    const out = {
-        signingKey: sodium.to_base64(keys.getPublicSigningKey(),sodium.sodium_base64_VARIANT_URLSAFE),
-        X25519Key: sodium.to_base64(keys.getPublicX25519Key(),sodium.sodium_base64_VARIANT_URLSAFE),
-        nonce: sodium.to_base64(nonce, sodium.sodium_base64_VARIANT_URLSAFE),
-        vault: secureVault,
-        username: username,
-    };
+    let out = vault.encodeVault(sodium, vaultKey, keys);
+    out.username = username;
     // console.log(out);
 
     fetch("/emapi/v1/signup",{

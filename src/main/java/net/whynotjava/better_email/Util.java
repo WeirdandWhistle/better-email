@@ -7,17 +7,25 @@ import org.springframework.http.*;
 
 public class Util {
     
-    public static final ResponseEntity<String> OKRes = new ResponseEntity<>("{\"status\":200,\"error\":\"ok\"}", noCache1(), HttpStatus.OK);
+    public static final ResponseEntity<String> OKRes = new ResponseEntity<>("{\"status\":200,\"error\":\"ok\"}", noCache(), HttpStatus.OK);
     public static ResponseEntity<String> error(int status, String error){
-        return new ResponseEntity<>("{\"status\":"+status+",\"error\":\""+error+"\"}", noCache1(), HttpStatusCode.valueOf(status));
+        return new ResponseEntity<>("{\"status\":"+status+",\"error\":\""+error.replace("\"", "\\\"")+"\"}", noCache(), HttpStatusCode.valueOf(status));
+    }
+    public static ResponseEntity<String> error(int status, String error, String stackTrace){
+        return new ResponseEntity<>("{\"status\":"+status+",\"error\":\""+error.replace("\"", "\\\"")+"\",\"stackTrace\":\""+stackTrace.replace("\"", "\\\"")+"\"}", noCache(), HttpStatusCode.valueOf(status));
     }
     public static ResponseEntity<String> badRequest(String error){
-        return new ResponseEntity<>("{\"status\":400,\"error\":\""+error+"\"}", noCache1(), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>("{\"status\":400,\"error\":\""+error+"\"}", noCache(), HttpStatus.BAD_REQUEST);
     }
-    public static HttpHeaders noCache1(){
+    public static HttpHeaders noCache(){
         final HttpHeaders noCache = new HttpHeaders();
         noCache.add("Cache-Control", "no-store");
         return noCache;
+    }
+    public static HttpHeaders CacheControl(String s){
+        final HttpHeaders c = new HttpHeaders();
+        c.add("Cache-Control", s);
+        return c;
     }
     public static byte[] convertUUIDToBytes(UUID uuid) {
         ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
@@ -30,5 +38,5 @@ public class Util {
     long high = byteBuffer.getLong();
     long low = byteBuffer.getLong();
     return new UUID(high, low);
-}
+    }
 }
