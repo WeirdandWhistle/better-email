@@ -7,4 +7,10 @@ public class Constants {
     public static final int NONCE_LENGTH = 12;
     public static final int VAULT_LENGTH = 16 * 1000;
     public static final int MAX_USERNAME_LENGTH = 25;
+
+    // CacheControl
+    public class CC{
+        public static final int USER_HOURS = 1;
+    }
+    
 }

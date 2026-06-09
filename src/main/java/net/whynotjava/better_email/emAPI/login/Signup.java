@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import static net.whynotjava.better_email.Constants.*;
 import net.whynotjava.better_email.Database;
+import net.whynotjava.better_email.Constants.CC;
 import net.whynotjava.better_email.emAPI.Username;
 import tools.jackson.databind.*;
 import tools.jackson.databind.json.JsonMapper;
@@ -41,36 +42,60 @@ public class Signup {
     Logger log = LoggerFactory.getLogger(getClass());
 
     @GetMapping("emapi/v1/signup")
-    public ResponseEntity<String> signupGet(@RequestParam(required = false) String username){
+    public ResponseEntity<String> signupGet(@RequestParam(required = false) String username,
+                                            @RequestParam(required = false) String UUID,
+                                            @RequestParam(required = false) String signingKey,
+                                            @RequestParam(required = false) String X25519Key){
         try (Connection conn = db.getDB().getConnection()){
+            ResultSet rs = null;
             if(username != null){
                 PreparedStatement ps = conn.prepareStatement("SELECT * FROM users WHERE username=? LIMIT 1;");
                 ps.setString(1, username);
-                ResultSet rs = ps.executeQuery();
-
-                // SignupJSON sj = SignupJSON.JSONFromDB(rs);
-
-                // ObjectMapper mapper = new ObjectMapper();
-                JsonMapper mapper = JsonMapper.builder().build();
-
-                Base64.Encoder encoder = Base64.getEncoder();
-                ObjectNode root = mapper.createObjectNode();
-                root.put("UUID", convertBytesToUUID(rs.getBytes("UUID")).toString());
-                root.put("X25519Key", encoder.encodeToString(rs.getBytes("X25519Key")));
-                root.put("signingKey", encoder.encodeToString(rs.getBytes("signingKey")));
-                root.put("nonce", encoder.encodeToString(rs.getBytes("nonce")));
-                root.put("vault", encoder.encodeToString(rs.getBytes("vault")));
-                root.put("username", rs.getString("username"));
-
-                root.put("status",200);
-
-                return new ResponseEntity<>(root.toString(), CacheControl("max-age") ,HttpStatus.OK);
+                rs = ps.executeQuery();
+            } else if(UUID != null){
+                byte[] uuidBytes = convertUUIDToBytes(java.util.UUID.fromString(UUID));
+                PreparedStatement ps = conn.prepareStatement("SELECT * FROM users WHERE UUID=? LIMIT 1;");
+                ps.setBytes(1, uuidBytes);
+                rs = ps.executeQuery();
+            } else if(signingKey != null){
+                Base64.Decoder decoder = Base64.getUrlDecoder();
+                byte[] singingKeyBytes = decoder.decode(signingKey);
+                PreparedStatement ps = conn.prepareStatement("SELECT * FROM users WHERE signingKey=? LIMIT 1;");
+                ps.setBytes(1, singingKeyBytes);
+                rs = ps.executeQuery();
             }
+            else if(X25519Key != null){
+                Base64.Decoder decoder = Base64.getUrlDecoder();
+                byte[] X25519KeyBytes = decoder.decode(X25519Key);
+                PreparedStatement ps = conn.prepareStatement("SELECT * FROM users WHERE X25519Key=? LIMIT 1;");
+                ps.setBytes(1, X25519KeyBytes);
+                rs = ps.executeQuery();
+                log.info("X25519Key "+X25519Key);
+            }
+
+            if(rs == null){
+                return badRequest("Must choose a search method.");
+            }
+            if(!rs.next()){
+                return badRequest("User does not exist.");
+            }
+
+            JsonMapper mapper = JsonMapper.builder().build();
+            Base64.Encoder encoder = Base64.getUrlEncoder();
+            ObjectNode root = mapper.createObjectNode();
+            root.put("UUID", convertBytesToUUID(rs.getBytes("UUID")).toString());
+            root.put("X25519Key", encoder.encodeToString(rs.getBytes("X25519Key")));
+            root.put("signingKey", encoder.encodeToString(rs.getBytes("signingKey")));
+            root.put("nonce", encoder.encodeToString(rs.getBytes("nonce")));
+            root.put("vault", encoder.encodeToString(rs.getBytes("vault")));
+            root.put("username", rs.getString("username"));
+            root.put("status",200);
+            return new ResponseEntity<>(root.toString(), CacheControl("max-age="+(CC.USER_HOURS * 60 * 60)), HttpStatus.OK);
+        
         } catch (Exception e) {
             log.error(e.getMessage());
             return error(500, "signupGet Exception"+e.getMessage());
-        }
-        return badRequest("No id to lookup.");        
+        }    
     }
     
     @PostMapping("/emapi/v1/signup")
