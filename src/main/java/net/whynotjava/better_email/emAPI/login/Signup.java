@@ -70,7 +70,6 @@ public class Signup {
                 PreparedStatement ps = conn.prepareStatement("SELECT * FROM users WHERE X25519Key=? LIMIT 1;");
                 ps.setBytes(1, X25519KeyBytes);
                 rs = ps.executeQuery();
-                log.info("X25519Key "+X25519Key);
             }
 
             if(rs == null){
