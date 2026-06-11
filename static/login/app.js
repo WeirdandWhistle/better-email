@@ -1,13 +1,14 @@
 import { get_sodium } from "/js/load_sodium.js";
-import * as c from "/js/crypto.js"
+import * as c from "/js/crypto.js";
+import { login, checkLogin } from "/js/login.js";
 
-const login = {
+const loginDOM = {
     button: document.getElementById("login-button"),
     username: document.getElementById("login-username"),
     password: document.getElementById("login-password"),
     message: document.getElementById("login-message")
 };
-const signup = {
+const signupDOM = {
     button: document.getElementById("signup-button"),
     username: document.getElementById("signup-username"),
     password: document.getElementById("signup-password"),
@@ -16,20 +17,22 @@ const signup = {
 
 const sodium = await get_sodium();
 
-login.button.addEventListener('click', async (event)=>{
-    const username = login.username.value;
-    const password = login.password.value;
+console.log(sodium.from_base64(""))
 
-    console.log(`usernmae ${username}, passoword ${password}`);
+loginDOM.button.addEventListener('click', async (event)=>{
+    const username = loginDOM.username.value;
+    const password = loginDOM.password.value;
 
-   const baseKey = c.Keys.computePassword(username, password);
+//     console.log(`usernmae ${username}, passoword ${password}`);
 
-   
+//    const baseKey = c.Keys.computePassword(username, password);
+
+   login(username, password);
 });
 
-signup.button.addEventListener('click', async (event)=>{
-    const username = signup.username.value.toLowerCase();
-    const password = signup.password.value;
+signupDOM.button.addEventListener('click', async (event)=>{
+    const username = signupDOM.username.value.toLowerCase();
+    const password = signupDOM.password.value;
 
     const baseKey = c.Keys.computePassword(username, password);
 
@@ -45,11 +48,13 @@ signup.button.addEventListener('click', async (event)=>{
     out.username = username;
     // console.log(out);
 
-    fetch("/emapi/v1/signup",{
+    await fetch("/emapi/v1/signup",{
         method: 'POST',
         headers: {
             'Content-Type' : 'application/json',
         },
         body: JSON.stringify(out),
     });
+
+    checkLogin(out, username, password);
 });

@@ -80,7 +80,7 @@ public class Signup {
             }
 
             JsonMapper mapper = JsonMapper.builder().build();
-            Base64.Encoder encoder = Base64.getUrlEncoder();
+            Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
             ObjectNode root = mapper.createObjectNode();
             root.put("UUID", convertBytesToUUID(rs.getBytes("UUID")).toString());
             root.put("X25519Key", encoder.encodeToString(rs.getBytes("X25519Key")));
@@ -89,7 +89,7 @@ public class Signup {
             root.put("vault", encoder.encodeToString(rs.getBytes("vault")));
             root.put("username", rs.getString("username"));
             root.put("status",200);
-            return new ResponseEntity<>(root.toString(), CacheControl("max-age="+(CC.USER_HOURS * 60 * 60)), HttpStatus.OK);
+            return new ResponseEntity<>(root.toString(), CacheControl("public, max-age="+(CC.USER_SECONDS)), HttpStatus.OK);
         
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -99,8 +99,6 @@ public class Signup {
     
     @PostMapping("/emapi/v1/signup")
     public ResponseEntity<?> signupPost(@RequestBody SignupJSON signup){
-
-        signup.log(log);
 
         try (Connection conn = db.getDB().getConnection()){
             Base64.Decoder decoder = Base64.getUrlDecoder();

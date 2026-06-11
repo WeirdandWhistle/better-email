@@ -188,12 +188,13 @@ export class Vault {
     }
     static decodeVault(sodium, vaultKey, vaultJSON){
         const blobVault = sodium.from_base64(vaultJSON.vault, sodium.sodium_base64_VARIANT_URLSAFE);
+        const nonce = sodium.from_base64(vaultJSON.nonce, sodium.sodium_base64_VARIANT_URLSAFE);
         const ad = this.generateAdditonalData(sodium.from_base64(vaultJSON.signingKey, sodium.sodium_base64_VARIANT_URLSAFE),
-            sodium.from_base64(vaultJSON.X25519Key, sodium.sodium_base64_VARIANT_URLSAFE),
-            sodium.from_base64(vaultJSON.nonce, sodium.sodium_base64_VARIANT_URLSAFE));
+            sodium.from_base64(vaultJSON.X25519Key, sodium.sodium_base64_VARIANT_URLSAFE), nonce);
 
-        const text = sodium.crypto_aead_chacha20poly1305_ietf_decrypt(null, blobVault, ad, vaultJSON.nonce, vaultKey, "text");
-        return this.getVaultFromJSON(JSON.parse(text));
+        const text = sodium.crypto_aead_chacha20poly1305_ietf_decrypt(null, blobVault, ad, nonce, vaultKey, "text");
+        // console.log("vault json",JSON.parse(text));
+        return this.getVaultFromJSON(sodium, JSON.parse(text));
     }
     static getVaultFromJSON(sodium, json){
         return new Vault(sodium.from_base64(json.secretX25519Key, sodium.sodium_base64_VARIANT_URLSAFE),
@@ -247,7 +248,6 @@ export class Vault {
         self.other = a;
     }
     getJSON(sodium){
-        console.log("getJSON",sodium);
         const out = {
             secretX25519Key: sodium.to_base64( this.getSecretX25519Key(), sodium.sodium_base64_VARIANT_URLSAFE),
             secretSigningKey: sodium.to_base64(this.getSecretSigningKey(), sodium.sodium_base64_VARIANT_URLSAFE),

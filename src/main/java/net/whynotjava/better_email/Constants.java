@@ -10,7 +10,7 @@ public class Constants {
 
     // CacheControl
     public class CC{
-        public static final int USER_HOURS = 1;
+        public static final int USER_SECONDS = 7;
     }
     
 }

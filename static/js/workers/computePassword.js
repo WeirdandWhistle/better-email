@@ -3,7 +3,6 @@ importScripts('/js/sodium.js');
 onmessage = async (message) => {
     await sodium.ready;
     // console.log("from computePassword worker:", message.data);
-    console.log(sodium.ready);
     
     const d = message.data;
 
