@@ -10,13 +10,12 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.http.*;
 
 import static net.whynotjava.better_email.Constants.*;
 import net.whynotjava.better_email.Database;
@@ -88,8 +87,14 @@ public class Signup {
             root.put("nonce", encoder.encodeToString(rs.getBytes("nonce")));
             root.put("vault", encoder.encodeToString(rs.getBytes("vault")));
             root.put("username", rs.getString("username"));
+            root.put("displayName", rs.getString("displayName"));
             root.put("status",200);
-            return new ResponseEntity<>(root.toString(), CacheControl("public, max-age="+(CC.USER_SECONDS)), HttpStatus.OK);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CACHE_CONTROL, "public, max-age="+(CC.USER_SECONDS));
+            headers.add(HttpHeaders.CONTENT_TYPE, "application/json");
+
+            return new ResponseEntity<>(root.toString(), headers, HttpStatus.OK);
         
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -161,10 +166,6 @@ public class Signup {
 
             ps.executeUpdate();            
         } catch (Exception e) {
-            // String stackTrace = "";
-            // for(StackTraceElement a : e.getStackTrace()){
-            //     stackTrace += a.toString() + "\\\n";
-            // }
             log.error(e.getMessage());
             e.printStackTrace();
             return error(500, "signupPost Exception: "+e.getMessage());

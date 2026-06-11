@@ -39,4 +39,11 @@ public class Util {
     long low = byteBuffer.getLong();
     return new UUID(high, low);
     }
+    public static byte[] concatArr(byte[] a, byte[] b){
+        byte c[] = new byte[a.length + b.length];
+        for(int i = 0; i < c.length; i++){
+            c[i] = i < a.length ? a[i] : b[i - a.length];
+        }
+        return c;
+    }
 }

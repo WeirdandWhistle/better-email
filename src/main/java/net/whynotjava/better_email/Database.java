@@ -31,6 +31,10 @@ public class Database{
                 CREATE TABLE IF NOT EXISTS users 
                 (vault VARBINARY(16000), username TEXT, displayName TEXT, X25519Key BINARY(32), signingKey BINARY(32), nonce BINARY(12), UUID BINARY(16));
                 """);
+            conn.createStatement().executeUpdate("""
+                CREATE TABLE IF NOT EXISTS verifyUser
+                (death BIGINT, UUID BINARY(16), challenge BINARY(16), value BINARY(32));
+                """);
         } catch (SQLException e) {
             Logger log = LoggerFactory.getLogger(getClass());
             log.error("While initing DB: "+e.getMessage());
