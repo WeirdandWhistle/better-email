@@ -88,6 +88,7 @@ public class Signup {
             root.put("vault", encoder.encodeToString(rs.getBytes("vault")));
             root.put("username", rs.getString("username"));
             root.put("displayName", rs.getString("displayName"));
+            root.put("encoding","base64");
             root.put("status",200);
 
             HttpHeaders headers = new HttpHeaders();
@@ -107,7 +108,7 @@ public class Signup {
 
         try (Connection conn = db.getDB().getConnection()){
             Base64.Decoder decoder = Base64.getUrlDecoder();
-            log.info("singingKey: " + signup.getSigningKey());
+            // log.info("singingKey: " + signup.getSigningKey());
             byte[] signingKey = decoder.decode(signup.getSigningKey());
             byte[] X25519Key = decoder.decode(signup.getX25519Key());
             byte[] nonce = decoder.decode(signup.getNonce());

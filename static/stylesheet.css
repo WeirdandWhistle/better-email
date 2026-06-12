@@ -136,3 +136,12 @@ entryIcon:hover{
     height: 60vh;
     flex-grow: 1;
 }
+.error-span{
+    
+}
+.error-span:not(:empty){
+color: red;
+    border: 1px red solid;
+    padding: 0.15rem;
+    border-radius: 5px;
+}

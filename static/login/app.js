@@ -31,14 +31,24 @@ loginDOM.button.addEventListener('click', async (event)=>{
 
     console.log(`usernmae ${username}, passoword ${password}`);
 
+    if(username.length === 0){
+        clearTimeout(timeout);
+        loginDOM.message.innerText = 'Username does not exist';
+        loginDOM.button.innerText = 'Login';
+        return;
+    }
+
 //    const baseKey = c.Keys.computePassword(username, password);
     try {
-        login(username, password);
-    } catch(error){
-        loginDOM.message.innerText = '): something unexpected happened... please try again.';
-        console.log("error from login", error);
+        await login(username, password);
+        window.location.pathname  = "/";
+    } catch({name, message}){
+        console.log("caught the error!");
+        loginDOM.message.innerText = message;
     }
    clearTimeout(timeout);
+   loginDOM.button.innerText = 'Login';
+   
 });
 
 signupDOM.button.addEventListener('click', async (event)=>{
@@ -49,6 +59,14 @@ signupDOM.button.addEventListener('click', async (event)=>{
     }, 5000);
     const username = signupDOM.username.value.toLowerCase();
     const password = signupDOM.password.value;
+
+    if(username.length === 0){
+        clearTimeout(timeout);
+        signupDOM.message.innerText = 'Username does not exist';
+        signupDOM.button.innerText = 'Signup';
+        return;
+    }
+
     try{
     const baseKey = c.Keys.computePassword(username, password);
 
@@ -64,47 +82,26 @@ signupDOM.button.addEventListener('click', async (event)=>{
     out.username = username;
     // console.log(out);
 
-    await fetch("/emapi/v1/signup",{
+    let res = await fetch("/emapi/v1/signup",{
         method: 'POST',
         headers: {
             'Content-Type' : 'application/json',
         },
         body: JSON.stringify(out),
     });
+    let temp = (await res.json()); 
+    if(temp.status != 200){
+        throw new Error(temp.error);
+    }
     
-    checkLogin(out, username, password);
-
-    const infoRes = await fetch(`/emapi/v1/signup?username=${username}`);
-    const infoJson = await infoRes.json(); 
-    if(infoJson.status != 200){
-        throw new Error("Server is not ok.");
-    }
-    const UUID = infoJson.UUID;
-    console.log("UUID",UUID);
-    const verifyJSON = await verify(UUID);
-    const signature = sodium.crypto_sign_detached(verifyJSON.value, keys.getSecretSigningKey());
-
-    out = {
-        type: "displayName",
-        value: "Gary",
-        challenge: verifyJSON.challenge,
-        signature: sodium.to_hex(signature)
-    }
-    console.log("sending",out);
-
-    await fetch('/emapi/v1/user',{
-        method: 'PUT',
-        headers:{
-            'Content-Type' : 'application/json',
-            
-        },
-        body: JSON.stringify(out),
-    });
-
+    await checkLogin(out, username, password);
+    window.location.pathname  = "/";
     } catch(error){
         console.log("error from signup",error);
-        signupDOM.message.innerText = 'Somthing bad happened while trying to signup. please try again.';
+        signupDOM.message.innerText = error.message;
     }
-
+    signupDOM.button.innerText = 'Signup';
     clearTimeout(timeout);
+
+    
 });

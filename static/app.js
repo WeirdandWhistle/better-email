@@ -1,5 +1,6 @@
 import { get_sodium } from "./js/load_sodium.js";
 import { Keys, concatArr, Crypto } from "./js/crypto.js";
+import { login, verify} from "/js/login.js";
 
 
 if(!sessionStorage.getItem("state")){

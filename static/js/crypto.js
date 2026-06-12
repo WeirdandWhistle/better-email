@@ -161,6 +161,14 @@ export class Keys {
         });
         
     }
+    static fromJSON(sodium, json){
+        return new Keys(
+            sodium.from_base64(json.publicSigningKey, sodium.sodium_base64_VARIANT_URLSAFE),
+            sodium.from_base64(json.secretSigningKey, sodium.sodium_base64_VARIANT_URLSAFE),
+            sodium.from_base64(json.publicX25519Key, sodium.sodium_base64_VARIANT_URLSAFE),
+            sodium.from_base64(json.secretX25519Key, sodium.sodium_base64_VARIANT_URLSAFE)
+        );
+    }
 
     constructor(publicSigningKey, secretSigningKey, publicX25519Key, secretX25519Key){
         this.publicSigningKey = publicSigningKey;
@@ -179,6 +187,17 @@ export class Keys {
     }
     getSecretX25519Key(){
         return this.secretX25519Key;
+    }
+    getJSON(sodium){
+        return {
+            publicSigningKey: sodium.to_base64(self.publicSigningKey, sodium.sodium_base64_VARIANT_URLSAFE),
+            secretSigningKey: sodium.to_base64(self.secretSigningKey, sodium.sodium_base64_VARIANT_URLSAFE),
+            publicX25519Key: sodium.to_base64(self.publicX25519Key, sodium.sodium_base64_VARIANT_URLSAFE),
+            secretX25519Key: sodium.to_base64(self.secretX25519Key, sodium.sodium_base64_VARIANT_URLSAFE),
+        };
+    }
+    getJSONText(sodium){
+        return JSON.stringify(this.getJSON(sodium));
     }
 }
 export class Vault {
