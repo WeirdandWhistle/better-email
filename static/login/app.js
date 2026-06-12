@@ -1,6 +1,6 @@
 import { get_sodium } from "/js/load_sodium.js";
 import * as c from "/js/crypto.js";
-import { login, checkLogin } from "/js/login.js";
+import { login, checkLogin, verify } from "/js/login.js";
 
 const loginDOM = {
     button: document.getElementById("login-button"),
@@ -73,6 +73,34 @@ signupDOM.button.addEventListener('click', async (event)=>{
     });
     
     checkLogin(out, username, password);
+
+    const infoRes = await fetch(`/emapi/v1/signup?username=${username}`);
+    const infoJson = await infoRes.json(); 
+    if(infoJson.status != 200){
+        throw new Error("Server is not ok.");
+    }
+    const UUID = infoJson.UUID;
+    console.log("UUID",UUID);
+    const verifyJSON = await verify(UUID);
+    const signature = sodium.crypto_sign_detached(verifyJSON.value, keys.getSecretSigningKey());
+
+    out = {
+        type: "displayName",
+        value: "Gary",
+        challenge: verifyJSON.challenge,
+        signature: sodium.to_hex(signature)
+    }
+    console.log("sending",out);
+
+    await fetch('/emapi/v1/user',{
+        method: 'PUT',
+        headers:{
+            'Content-Type' : 'application/json',
+            
+        },
+        body: JSON.stringify(out),
+    });
+
     } catch(error){
         console.log("error from signup",error);
         signupDOM.message.innerText = 'Somthing bad happened while trying to signup. please try again.';
