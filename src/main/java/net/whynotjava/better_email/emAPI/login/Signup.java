@@ -115,7 +115,7 @@ public class Signup {
             byte[] vault = decoder.decode(signup.getVault());
             String username = signup.getUsername().toLowerCase();
 
-            if(vault.length > VAULT_LENGTH){
+            if(vault.length > MAX_VAULT_LENGTH){
                 return badRequest("Vault is too big.");
             }
             if (signingKey.length != SINGING_KEY_LENGTH) {

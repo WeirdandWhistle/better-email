@@ -23,16 +23,18 @@ export async function login(username, password){
         sessionStorage.setItem("vault", vault.getJSONText(sodium));
     }
     if(!sessionStorage.getItem("keys")){
+        // console.log(resJson);
         const keys =  {
-            publicSigningKey: resJson.publicSigningKey,
+            publicSigningKey: resJson.signingKey,
             secretSigningKey: sodium.to_base64(vault.getSecretSigningKey(), sodium.sodium_base64_VARIANT_URLSAFE),
-            publicX25519Key: resJson.publicX25519Key,
+            publicX25519Key: resJson.X25519Key,
             secretX25519Key: sodium.to_base64(vault.getSecretX25519Key(), sodium.sodium_base64_VARIANT_URLSAFE)
         };
         sessionStorage.setItem('keys', JSON.stringify(keys));
 
     }
     sessionStorage.setItem("loggedIn", true);
+    sessionStorage.setItem("username", username);
 
     return vault;
 }

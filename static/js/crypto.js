@@ -20,6 +20,11 @@ export class Crypto {
           .join('');
     }
     static async check(challenge, nonce){
+        if(typeof nonce === "object"){
+            const view = new DataView(nonce.buffer);
+            const num = view.getUint32(0, false);
+            nonce = num;
+        }
         const text = `${challenge}${nonce}`;
         const msgBuffer = new TextEncoder('utf-8').encode(text);
         const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -47,7 +52,11 @@ export class Crypto {
         return new Promise((resolve, reject) => {
             worker.onmessage = function(e){
                 let end = (Date.now() - start) / 1000;
-                resolve(`nonce: ${e.data}, time: ${end}`);
+                const buf = new ArrayBuffer(4);
+                const view = new DataView(buf);
+                view.setUint32(0, e.data, false);
+                const a = new Uint8Array(buf);
+                resolve(a);
             }
         });
         
@@ -60,35 +69,35 @@ export class Crypto {
     }
 
     constructor(sodium, keys){
-        this.sodium = sodium;
-        this.keys = keys;
+        self.sodium = sodium;
+        self.keys = keys;
     }
     getTransciptHash(message, targetX25519PublicKey){
-        return this.sodium.crypto_hash_sha256(message + to_hex(targetX25519PublicKey) + FUNNY_WORD2);
+        return self.sodium.crypto_hash_sha256(message + self.sodium.to_hex(targetX25519PublicKey) + Crypto.FUNNY_WORD2);
     }
     async encryptMessage(message, targetX25519PublicKey){
 
-        const tempSecretX25519Key = this.sodium.randombytes_buf(KEY_LENGTH);
-        const tempPublicX25519Key = this.sodium.crypto_scalarmult_base(tempSecretX25519Key);
+        const tempSecretX25519Key = self.sodium.randombytes_buf(Crypto.KEY_LENGTH);
+        const tempPublicX25519Key = self.sodium.crypto_scalarmult_base(tempSecretX25519Key);
 
-        const sharedSecret = this.sodium.crypto_scalarmult(tempSecretX25519Key, targetX25519PublicKey);
+        const sharedSecret = self.sodium.crypto_scalarmult(tempSecretX25519Key, targetX25519PublicKey);
 
         const transciptHash = this.getTransciptHash(message, targetX25519PublicKey);
         let challengeNonce = Crypto.findChallengeNonce(transciptHash);
-        const signatureBase64 = this.sodium.crypto_sign_detached(transciptHash, this.keys.getSecrectSigningKey(), 'base64');
+        const signatureBase64 = self.sodium.crypto_sign_detached(transciptHash, self.keys.getSecretSigningKey(), 'base64');
 
-        const nonce = this.sodium.randombytes_buf(NONCE_LENGTH);
+        const nonce = self.sodium.randombytes_buf(Crypto.NONCE_LENGTH);
 
 
 
         const fullMessage = {
             signature: signatureBase64,
             from: {
-                X25519: this.keys.getPublicX25519Key(),
-                signing: this.keys.getSecrectSigningKey()
+                X25519:  self.sodium.to_base64(self.keys.getPublicX25519Key(), self.sodium.sodium_base64_VARIANT_URLSAFE),
+                signing: self.sodium.to_base64(self.keys.getSecretSigningKey(), self.sodium.sodium_base64_VARIANT_URLSAFE)
             },
             metadata: {
-                client: CLIENT
+                client: Crypto.CLIENT
             },
             message: message
         };
@@ -98,13 +107,14 @@ export class Crypto {
         challengeNonce = await challengeNonce;
         const additonalData = Crypto.createAdditionDataMail(nonce, targetX25519PublicKey, tempPublicX25519Key, challengeNonce);
 
-        const encryptedMessage = this.sodium.crypto_aead_chacha20poly1305_ietf_encrypt(fullMessageString, additonalData, null, nonce, sharedSecret);
+        const encryptedMessage = self.sodium.crypto_aead_chacha20poly1305_ietf_encrypt(fullMessageString, additonalData, null, nonce, sharedSecret);
 
         return {
             nonce: nonce,
-            tempPublicX25519Key: publicX25519Key,
+            targetX25519PublicKey: targetX25519PublicKey,
+            tempPublicX25519Key: tempPublicX25519Key,
             challengeNonce: challengeNonce,
-            encryptedMessage: concatArr(encryptedMessage),
+            encryptedMessage: encryptedMessage,
         };
     }
     async decryptMessage(out){
