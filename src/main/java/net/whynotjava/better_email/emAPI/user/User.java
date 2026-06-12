@@ -20,6 +20,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import net.whynotjava.better_email.Database;
 import net.whynotjava.better_email.emAPI.login.Signup;
+import net.whynotjava.better_email.emAPI.verify.Verify;
 
 @RestController
 public class User {
@@ -43,6 +44,14 @@ public class User {
     @PutMapping("/emapi/v1/user")
     public ResponseEntity<String> userPut(@RequestBody UserPutJSON json){
         try (Connection conn = db.getDB().getConnection()){
+
+            boolean verifyed = Verify.verifyUser(conn, json.getSignatureBytes(), json.getChallengeBytes());
+            if(!verifyed){
+                log.info("attempted impersonation!");
+                return badRequest("User could not be verifyed.");
+            }
+            log.info("Succful verifacation!");
+
             switch (json.getType()) {
                 case "displayName":
                     // PreparedStatement ps = conn.prepareStatement("UPDATE users SET displayName=? WHERE")
