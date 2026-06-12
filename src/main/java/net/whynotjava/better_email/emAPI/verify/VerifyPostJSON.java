@@ -3,7 +3,6 @@ package net.whynotjava.better_email.emAPI.verify;
 import jakarta.annotation.Nullable;
 
 public class VerifyPostJSON {
-    @Nullable
     private String UUID;
     private String hex;
     public String getUUID() {
