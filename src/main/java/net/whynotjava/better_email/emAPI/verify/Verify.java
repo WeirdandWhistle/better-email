@@ -9,12 +9,16 @@ import static net.whynotjava.better_email.Util.noCache;
 
 import java.security.MessageDigest;
 import java.security.SecureRandom;
+import java.security.Signature;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.HexFormat;
 import java.util.UUID;
 
+import org.bouncycastle.crypto.Signer;
+import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
+import org.bouncycastle.crypto.signers.Ed25519Signer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,8 +46,8 @@ public class Verify {
     public ResponseEntity<String> verifyPost(@RequestBody VerifyPostJSON json){
         try (Connection conn = db.getDB().getConnection()){
             cleanDB(conn);
-            if(json.getUUID().length() != UUID_TEXT_LENGTH){
-                return badRequest("UUID is the wrong length");
+            if(json.getUUID() == null || json.getUUID().length() != UUID_TEXT_LENGTH){
+                return badRequest("UUID error: UUID does not exist or is the wrong length.");
             }
             byte hex[] = HexFormat.of().parseHex(json.getHex());
             if(hex.length != HASH_LENGNTH/2){
@@ -101,5 +105,37 @@ public class Verify {
         long now = System.currentTimeMillis() / 1000;
         ps.setLong(1, now);
         ps.executeUpdate();        
+    }
+    public static boolean verifyUser(Connection conn, byte signature[], byte challenge[]) throws Exception{
+        PreparedStatement ps = conn.prepareStatement("SELECT * FROM verifyUser WHERE challenge=? LIMIT 1;");
+        ps.setBytes(1, challenge);
+        ResultSet rs = ps.executeQuery();
+
+        if(!rs.next()){
+            throw new Exception("Challenge does not exist.");
+        }
+
+        byte uuid[] = rs.getBytes("UUID");
+        byte value[] = rs.getBytes("value");
+
+        // get public key
+        ps = conn.prepareStatement("SELECT signingKey FROM users WHERE UUID=? LIMIT 1;");
+        ps.setBytes(1, uuid);
+        rs = ps.executeQuery();
+        if(!rs.next()){
+            throw new Exception("User does not exist");
+        }
+        byte publicSigningKey[] = rs.getBytes("signingKey");
+
+        // delete challange
+        ps = conn.prepareStatement("DELETE FROM verifyUser WHERE challenge=?;");
+        ps.setBytes(1, challenge);
+        ps.executeUpdate();
+
+        // verify sig with bouncy castle
+        Signer v = new Ed25519Signer();
+        v.init(false, new Ed25519PublicKeyParameters(publicSigningKey));
+        v.update(value, 0, value.length);
+        return v.verifySignature(signature);
     }
 }
