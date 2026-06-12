@@ -12,9 +12,6 @@ export async function login(username, password){
 
     const resJson = await res.json();
     const vault = c.Vault.decodeVault(sodium, vaultKey, resJson);
-
-   verify(resJson.UUID);
-
     return vault;
 }
 export async function checkLogin(json, username, password){
@@ -29,10 +26,9 @@ export async function checkLogin(json, username, password){
     }
     return vault;
 }
-async function verify(UUID){
-    console.log("verifying user!");
+export async function verify(UUID){
     const hex = sodium.randombytes_buf(16);
-    const out = {
+    let out = {
         hex: sodium.to_hex(hex),
         UUID: UUID,
     };
@@ -46,9 +42,14 @@ async function verify(UUID){
     });
 
     const json = await res.json();
-    console.log('verify json',json);
-
-    const value = sodium.crypto_hash_sha256(c.concatArr(hex, sodium.from_hex(json.rand)), 'hex');
-    console.log("verify value:",value);
+    // console.log('verify json',json);
+    if(json.status != 200){
+        throw new Error("Server request is not ok.");
+    }
+    out = {
+        value: sodium.crypto_hash_sha256(c.concatArr(hex, sodium.from_hex(json.rand))),
+        challenge: json.challenge,
+    }
     
+    return out;
 }
